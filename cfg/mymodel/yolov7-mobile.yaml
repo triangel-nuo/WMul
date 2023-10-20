@@ -1,0 +1,101 @@
+# parameters
+nc: 80  # number of classes
+depth_multiple: 1.0  # model depth multiple
+width_multiple: 1.0  # layer channel multiple
+
+# anchors
+anchors:
+  - [12,16, 19,36, 40,28]  # P3/8
+  - [36,75, 76,55, 72,146]  # P4/16
+  - [142,110, 192,243, 459,401]  # P5/32
+
+# yolov7 backbone
+backbone:
+  # [from, number, module, args]
+  # MobileNetV3-small 11层
+  # [from, number, module, args]
+  # MobileNet_Block: [out_ch, hidden_ch, kernel_size, stride, use_se, use_hs]
+  # hidden_ch表示在Inverted residuals中的扩张通道数
+  # use_se 表示是否使用 SELayer, use_hs 表示使用 h_swish 还是 ReLU
+  [[-1, 1, Conv_Hswish, [16, 2]],                 # 0-p1/2
+   [-1, 1, MobileNet_Block, [16,  16, 3, 2, 1, 0]],  # 1-p2/4
+   [-1, 1, MobileNet_Block, [24,  72, 3, 2, 0, 0]],  # 2-p3/8
+   [-1, 1, MobileNet_Block, [24,  88, 3, 1, 0, 0]],  # 3-p3/8
+   [-1, 1, MobileNet_Block, [40,  96, 5, 2, 1, 1]],  # 4-p4/16
+   [-1, 1, MobileNet_Block, [40, 240, 5, 1, 1, 1]],  # 5-p4/16
+   [-1, 1, MobileNet_Block, [40, 240, 5, 1, 1, 1]],  # 6-p4/16
+   [-1, 1, MobileNet_Block, [48, 120, 5, 1, 1, 1]],  # 7-p4/16
+   [-1, 1, MobileNet_Block, [48, 144, 5, 1, 1, 1]],  # 8-p4/16
+   [-1, 1, MobileNet_Block, [96, 288, 5, 2, 1, 1]],  # 9-p5/32
+   [-1, 1, MobileNet_Block, [96, 576, 5, 1, 1, 1]],  # 10-p5/32
+   [-1, 1, MobileNet_Block, [96, 576, 5, 1, 1, 1]],  # 11-p5/32
+  ]
+
+# yolov7 head
+head:
+  [[-1, 1, SPPCSPC, [512]], # 12
+  
+   [-1, 1, Conv, [256, 1, 1]],
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
+   [8, 1, Conv, [256, 1, 1]], # route backbone P4
+   [[-1, -2], 1, Concat, [1]],
+   
+   [-1, 1, Conv, [256, 1, 1]],
+   [-2, 1, Conv, [256, 1, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [[-1, -2, -3, -4, -5, -6], 1, Concat, [1]],
+   [-1, 1, Conv, [256, 1, 1]], # 24
+   
+   [-1, 1, Conv, [128, 1, 1]],
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
+   [3, 1, Conv, [128, 1, 1]], # route backbone P3
+   [[-1, -2], 1, Concat, [1]],
+   
+   [-1, 1, Conv, [128, 1, 1]],
+   [-2, 1, Conv, [128, 1, 1]],
+   [-1, 1, Conv, [64, 3, 1]],
+   [-1, 1, Conv, [64, 3, 1]],
+   [-1, 1, Conv, [64, 3, 1]],
+   [-1, 1, Conv, [64, 3, 1]],
+   [[-1, -2, -3, -4, -5, -6], 1, Concat, [1]],
+   [-1, 1, Conv, [128, 1, 1]], # 36
+      
+   [-1, 1, MP, []],
+   [-1, 1, Conv, [128, 1, 1]],
+   [-3, 1, Conv, [128, 1, 1]],
+   [-1, 1, Conv, [128, 3, 2]],
+   [[-1, -3, 24], 1, Concat, [1]], #41
+   
+   [-1, 1, Conv, [256, 1, 1]],
+   [-2, 1, Conv, [256, 1, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [[-1, -2, -3, -4, -5, -6], 1, Concat, [1]],
+   [-1, 1, Conv, [256, 1, 1]], # 49
+      
+   [-1, 1, MP, []],
+   [-1, 1, Conv, [256, 1, 1]],
+   [-3, 1, Conv, [256, 1, 1]],
+   [-1, 1, Conv, [256, 3, 2]],
+   [[-1, -3, 12], 1, Concat, [1]], #54
+   
+   [-1, 1, Conv, [512, 1, 1]],
+   [-2, 1, Conv, [512, 1, 1]],
+   [-1, 1, Conv, [256, 3, 1]],
+   [-1, 1, Conv, [256, 3, 1]],
+   [-1, 1, Conv, [256, 3, 1]],
+   [-1, 1, Conv, [256, 3, 1]],
+   [[-1, -2, -3, -4, -5, -6], 1, Concat, [1]], #61
+   [-1, 1, Conv, [512, 1, 1]], # 62
+   
+   [36, 1, RepConv, [256, 3, 1]],
+   [49, 1, RepConv, [512, 3, 1]],
+   [62, 1, RepConv, [1024, 3, 1]],
+
+   [[63,64,65], 1, IDetect, [nc, anchors]],   # Detect(P3, P4, P5)
+  ]
