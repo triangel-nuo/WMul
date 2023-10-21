@@ -17,7 +17,7 @@ beta = 5e-2                 # param for update feature centers
 ##################################################
 # Dataset/Path Config
 ##################################################
-tag = 'aircraft'                # 'aircraft', 'bird', 'car', or 'dog'
+tag = 'aircraft'                # 'aircraft',  'car'
 
 # saving directory of .ckpt models
 save_dir = './FGVC/aircraft/inceptionR/test'
