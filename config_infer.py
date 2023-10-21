@@ -15,12 +15,12 @@ net = 'inceptionR'  # feature extractor
 num_attentions = 32         # number of attention maps
 beta = 5e-2                 # param for update feature centers
 
-visual_path = None  # './vis-cub-inception-cf/'  # None
+visual_path = None  
 
 ##################################################
 # Dataset/Path Config
 ##################################################
-tag = 'car'                # 'aircraft', 'bird', 'car', or 'dog'
+tag = 'car'                # 'aircraft', car'
 
 # checkpoint model for resume training
 ckpt = './FGVC/car/test/model_bestacc.pth'
