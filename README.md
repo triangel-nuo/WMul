@@ -6,5 +6,7 @@ The pre-training file used for inceptionR in the model can be downloaded here:
 
 # train
 You can modify the backbone and related parameters used during training by modifying the parameters in config_distributed.py.
+You can start your training with the following code:
+bash train_distributed.sh
 
 
